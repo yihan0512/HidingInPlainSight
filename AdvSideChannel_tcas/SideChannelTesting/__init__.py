@@ -1,0 +1,1 @@
+NUM_PATHS = 24

@@ -1,0 +1,12 @@
+# data dir
+SideChannelTesting/train/
+SideChannelTesting/test/
+SideChannelTesting/attack/
+SideChannelTesting/adv_time/
+SideChannelTesting/dataset_adv_time/
+
+# checkpoint dir
+SideChannelDetector/checkpoints/
+
+# log dir
+SideChannelDetector/runs/

@@ -1,0 +1,1 @@
+st-flash --reset --format ihex write simpleserial-$1-CW308_STM32F3.hex

@@ -1,0 +1,1001 @@
+   1              		.cpu cortex-m4
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"simpleserial.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.bss
+  18              		.align	2
+  19              	commands:
+  20 0000 00000000 		.space	120
+  20      00000000 
+  20      00000000 
+  20      00000000 
+  20      00000000 
+  22              		.align	2
+  23              	num_commands:
+  24 0078 00000000 		.space	4
+  26              		.data
+  27              		.align	2
+  30              	hex_lookup:
+  31 0000 30       		.byte	48
+  32 0001 31       		.byte	49
+  33 0002 32       		.byte	50
+  34 0003 33       		.byte	51
+  35 0004 34       		.byte	52
+  36 0005 35       		.byte	53
+  37 0006 36       		.byte	54
+  38 0007 37       		.byte	55
+  39 0008 38       		.byte	56
+  40 0009 39       		.byte	57
+  41 000a 41       		.byte	65
+  42 000b 42       		.byte	66
+  43 000c 43       		.byte	67
+  44 000d 44       		.byte	68
+  45 000e 45       		.byte	69
+  46 000f 46       		.byte	70
+  47              		.section	.text.hex_decode,"ax",%progbits
+  48              		.align	1
+  49              		.global	hex_decode
+  50              		.arch armv7e-m
+  51              		.syntax unified
+  52              		.thumb
+  53              		.thumb_func
+  54              		.fpu fpv4-sp-d16
+  56              	hex_decode:
+  57              	.LFB0:
+  58              		.file 1 ".././simpleserial/simpleserial.c"
+   1:.././simpleserial/simpleserial.c **** // simpleserial.c
+   2:.././simpleserial/simpleserial.c **** 
+   3:.././simpleserial/simpleserial.c **** #include "simpleserial.h"
+   4:.././simpleserial/simpleserial.c **** #include <stdint.h>
+   5:.././simpleserial/simpleserial.c **** #include "hal.h"
+   6:.././simpleserial/simpleserial.c **** 
+   7:.././simpleserial/simpleserial.c **** typedef struct ss_cmd
+   8:.././simpleserial/simpleserial.c **** {
+   9:.././simpleserial/simpleserial.c **** 	char c;
+  10:.././simpleserial/simpleserial.c **** 	unsigned int len;
+  11:.././simpleserial/simpleserial.c **** 	uint8_t (*fp)(uint8_t*);
+  12:.././simpleserial/simpleserial.c **** } ss_cmd;
+  13:.././simpleserial/simpleserial.c **** 
+  14:.././simpleserial/simpleserial.c **** #define MAX_SS_CMDS 10
+  15:.././simpleserial/simpleserial.c **** static ss_cmd commands[MAX_SS_CMDS];
+  16:.././simpleserial/simpleserial.c **** static int num_commands = 0;
+  17:.././simpleserial/simpleserial.c **** 
+  18:.././simpleserial/simpleserial.c **** #define MAX_SS_LEN 64
+  19:.././simpleserial/simpleserial.c **** 
+  20:.././simpleserial/simpleserial.c **** #define SS_VER_1_0 0
+  21:.././simpleserial/simpleserial.c **** #define SS_VER_1_1 1
+  22:.././simpleserial/simpleserial.c **** 
+  23:.././simpleserial/simpleserial.c **** static char hex_lookup[16] =
+  24:.././simpleserial/simpleserial.c **** {
+  25:.././simpleserial/simpleserial.c **** 	'0', '1', '2', '3', '4', '5', '6', '7',
+  26:.././simpleserial/simpleserial.c **** 	'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+  27:.././simpleserial/simpleserial.c **** };
+  28:.././simpleserial/simpleserial.c **** 
+  29:.././simpleserial/simpleserial.c **** int hex_decode(int len, char* ascii_buf, uint8_t* data_buf)
+  30:.././simpleserial/simpleserial.c **** {
+  59              		.loc 1 30 1
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 24
+  62              		@ frame_needed = 1, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+  64 0000 80B4     		push	{r7}
+  65              	.LCFI0:
+  66              		.cfi_def_cfa_offset 4
+  67              		.cfi_offset 7, -4
+  68 0002 87B0     		sub	sp, sp, #28
+  69              	.LCFI1:
+  70              		.cfi_def_cfa_offset 32
+  71 0004 00AF     		add	r7, sp, #0
+  72              	.LCFI2:
+  73              		.cfi_def_cfa_register 7
+  74 0006 F860     		str	r0, [r7, #12]
+  75 0008 B960     		str	r1, [r7, #8]
+  76 000a 7A60     		str	r2, [r7, #4]
+  77              	.LBB2:
+  31:.././simpleserial/simpleserial.c **** 	for(int i = 0; i < len; i++)
+  78              		.loc 1 31 10
+  79 000c 0023     		movs	r3, #0
+  80 000e 7B61     		str	r3, [r7, #20]
+  81              		.loc 1 31 2
+  82 0010 83E0     		b	.L2
+  83              	.L12:
+  84              	.LBB3:
+  32:.././simpleserial/simpleserial.c **** 	{
+  33:.././simpleserial/simpleserial.c **** 		char n_hi = ascii_buf[2*i];
+  85              		.loc 1 33 26
+  86 0012 7B69     		ldr	r3, [r7, #20]
+  87 0014 5B00     		lsls	r3, r3, #1
+  88 0016 1A46     		mov	r2, r3
+  89              		.loc 1 33 24
+  90 0018 BB68     		ldr	r3, [r7, #8]
+  91 001a 1344     		add	r3, r3, r2
+  92              		.loc 1 33 8
+  93 001c 1B78     		ldrb	r3, [r3]
+  94 001e FB74     		strb	r3, [r7, #19]
+  34:.././simpleserial/simpleserial.c **** 		char n_lo = ascii_buf[2*i+1];
+  95              		.loc 1 34 26
+  96 0020 7B69     		ldr	r3, [r7, #20]
+  97 0022 5B00     		lsls	r3, r3, #1
+  98              		.loc 1 34 24
+  99 0024 0133     		adds	r3, r3, #1
+ 100 0026 BA68     		ldr	r2, [r7, #8]
+ 101 0028 1344     		add	r3, r3, r2
+ 102              		.loc 1 34 8
+ 103 002a 1B78     		ldrb	r3, [r3]
+ 104 002c BB74     		strb	r3, [r7, #18]
+  35:.././simpleserial/simpleserial.c **** 
+  36:.././simpleserial/simpleserial.c **** 		if(n_lo >= '0' && n_lo <= '9')
+ 105              		.loc 1 36 5
+ 106 002e BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 107 0030 2F2B     		cmp	r3, #47
+ 108 0032 0AD9     		bls	.L3
+ 109              		.loc 1 36 18 discriminator 1
+ 110 0034 BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 111 0036 392B     		cmp	r3, #57
+ 112 0038 07D8     		bhi	.L3
+  37:.././simpleserial/simpleserial.c **** 			data_buf[i] = n_lo - '0';
+ 113              		.loc 1 37 12
+ 114 003a 7B69     		ldr	r3, [r7, #20]
+ 115 003c 7A68     		ldr	r2, [r7, #4]
+ 116 003e 1344     		add	r3, r3, r2
+ 117              		.loc 1 37 23
+ 118 0040 BA7C     		ldrb	r2, [r7, #18]
+ 119 0042 303A     		subs	r2, r2, #48
+ 120 0044 D2B2     		uxtb	r2, r2
+ 121              		.loc 1 37 16
+ 122 0046 1A70     		strb	r2, [r3]
+ 123 0048 1DE0     		b	.L4
+ 124              	.L3:
+  38:.././simpleserial/simpleserial.c **** 		else if(n_lo >= 'A' && n_lo <= 'F')
+ 125              		.loc 1 38 10
+ 126 004a BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 127 004c 402B     		cmp	r3, #64
+ 128 004e 0AD9     		bls	.L5
+ 129              		.loc 1 38 23 discriminator 1
+ 130 0050 BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 131 0052 462B     		cmp	r3, #70
+ 132 0054 07D8     		bhi	.L5
+  39:.././simpleserial/simpleserial.c **** 			data_buf[i] = n_lo - 'A' + 10;
+ 133              		.loc 1 39 12
+ 134 0056 7B69     		ldr	r3, [r7, #20]
+ 135 0058 7A68     		ldr	r2, [r7, #4]
+ 136 005a 1344     		add	r3, r3, r2
+ 137              		.loc 1 39 29
+ 138 005c BA7C     		ldrb	r2, [r7, #18]
+ 139 005e 373A     		subs	r2, r2, #55
+ 140 0060 D2B2     		uxtb	r2, r2
+ 141              		.loc 1 39 16
+ 142 0062 1A70     		strb	r2, [r3]
+ 143 0064 0FE0     		b	.L4
+ 144              	.L5:
+  40:.././simpleserial/simpleserial.c **** 		else if(n_lo >= 'a' && n_lo <= 'f')
+ 145              		.loc 1 40 10
+ 146 0066 BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 147 0068 602B     		cmp	r3, #96
+ 148 006a 0AD9     		bls	.L6
+ 149              		.loc 1 40 23 discriminator 1
+ 150 006c BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 151 006e 662B     		cmp	r3, #102
+ 152 0070 07D8     		bhi	.L6
+  41:.././simpleserial/simpleserial.c **** 			data_buf[i] = n_lo - 'a' + 10;
+ 153              		.loc 1 41 12
+ 154 0072 7B69     		ldr	r3, [r7, #20]
+ 155 0074 7A68     		ldr	r2, [r7, #4]
+ 156 0076 1344     		add	r3, r3, r2
+ 157              		.loc 1 41 29
+ 158 0078 BA7C     		ldrb	r2, [r7, #18]
+ 159 007a 573A     		subs	r2, r2, #87
+ 160 007c D2B2     		uxtb	r2, r2
+ 161              		.loc 1 41 16
+ 162 007e 1A70     		strb	r2, [r3]
+ 163 0080 01E0     		b	.L4
+ 164              	.L6:
+  42:.././simpleserial/simpleserial.c **** 		else
+  43:.././simpleserial/simpleserial.c **** 			return 1;
+ 165              		.loc 1 43 11
+ 166 0082 0123     		movs	r3, #1
+ 167 0084 4FE0     		b	.L7
+ 168              	.L4:
+  44:.././simpleserial/simpleserial.c **** 
+  45:.././simpleserial/simpleserial.c **** 		if(n_hi >= '0' && n_hi <= '9')
+ 169              		.loc 1 45 5
+ 170 0086 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 171 0088 2F2B     		cmp	r3, #47
+ 172 008a 13D9     		bls	.L8
+ 173              		.loc 1 45 18 discriminator 1
+ 174 008c FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 175 008e 392B     		cmp	r3, #57
+ 176 0090 10D8     		bhi	.L8
+  46:.././simpleserial/simpleserial.c **** 			data_buf[i] |= (n_hi - '0') << 4;
+ 177              		.loc 1 46 16
+ 178 0092 7B69     		ldr	r3, [r7, #20]
+ 179 0094 7A68     		ldr	r2, [r7, #4]
+ 180 0096 1344     		add	r3, r3, r2
+ 181 0098 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 182 009a 5AB2     		sxtb	r2, r3
+ 183              		.loc 1 46 25
+ 184 009c FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 185 009e 303B     		subs	r3, r3, #48
+ 186              		.loc 1 46 32
+ 187 00a0 1B01     		lsls	r3, r3, #4
+ 188              		.loc 1 46 16
+ 189 00a2 5BB2     		sxtb	r3, r3
+ 190 00a4 1343     		orrs	r3, r3, r2
+ 191 00a6 59B2     		sxtb	r1, r3
+ 192 00a8 7B69     		ldr	r3, [r7, #20]
+ 193 00aa 7A68     		ldr	r2, [r7, #4]
+ 194 00ac 1344     		add	r3, r3, r2
+ 195 00ae CAB2     		uxtb	r2, r1
+ 196 00b0 1A70     		strb	r2, [r3]
+ 197 00b2 2FE0     		b	.L9
+ 198              	.L8:
+  47:.././simpleserial/simpleserial.c **** 		else if(n_hi >= 'A' && n_hi <= 'F')
+ 199              		.loc 1 47 10
+ 200 00b4 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 201 00b6 402B     		cmp	r3, #64
+ 202 00b8 13D9     		bls	.L10
+ 203              		.loc 1 47 23 discriminator 1
+ 204 00ba FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 205 00bc 462B     		cmp	r3, #70
+ 206 00be 10D8     		bhi	.L10
+  48:.././simpleserial/simpleserial.c **** 			data_buf[i] |= (n_hi - 'A' + 10) << 4;
+ 207              		.loc 1 48 16
+ 208 00c0 7B69     		ldr	r3, [r7, #20]
+ 209 00c2 7A68     		ldr	r2, [r7, #4]
+ 210 00c4 1344     		add	r3, r3, r2
+ 211 00c6 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 212 00c8 5AB2     		sxtb	r2, r3
+ 213              		.loc 1 48 31
+ 214 00ca FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 215 00cc 373B     		subs	r3, r3, #55
+ 216              		.loc 1 48 37
+ 217 00ce 1B01     		lsls	r3, r3, #4
+ 218              		.loc 1 48 16
+ 219 00d0 5BB2     		sxtb	r3, r3
+ 220 00d2 1343     		orrs	r3, r3, r2
+ 221 00d4 59B2     		sxtb	r1, r3
+ 222 00d6 7B69     		ldr	r3, [r7, #20]
+ 223 00d8 7A68     		ldr	r2, [r7, #4]
+ 224 00da 1344     		add	r3, r3, r2
+ 225 00dc CAB2     		uxtb	r2, r1
+ 226 00de 1A70     		strb	r2, [r3]
+ 227 00e0 18E0     		b	.L9
+ 228              	.L10:
+  49:.././simpleserial/simpleserial.c **** 		else if(n_hi >= 'a' && n_hi <= 'f')
+ 229              		.loc 1 49 10
+ 230 00e2 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 231 00e4 602B     		cmp	r3, #96
+ 232 00e6 13D9     		bls	.L11
+ 233              		.loc 1 49 23 discriminator 1
+ 234 00e8 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 235 00ea 662B     		cmp	r3, #102
+ 236 00ec 10D8     		bhi	.L11
+  50:.././simpleserial/simpleserial.c **** 			data_buf[i] |= (n_hi - 'a' + 10) << 4;
+ 237              		.loc 1 50 16
+ 238 00ee 7B69     		ldr	r3, [r7, #20]
+ 239 00f0 7A68     		ldr	r2, [r7, #4]
+ 240 00f2 1344     		add	r3, r3, r2
+ 241 00f4 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 242 00f6 5AB2     		sxtb	r2, r3
+ 243              		.loc 1 50 31
+ 244 00f8 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 245 00fa 573B     		subs	r3, r3, #87
+ 246              		.loc 1 50 37
+ 247 00fc 1B01     		lsls	r3, r3, #4
+ 248              		.loc 1 50 16
+ 249 00fe 5BB2     		sxtb	r3, r3
+ 250 0100 1343     		orrs	r3, r3, r2
+ 251 0102 59B2     		sxtb	r1, r3
+ 252 0104 7B69     		ldr	r3, [r7, #20]
+ 253 0106 7A68     		ldr	r2, [r7, #4]
+ 254 0108 1344     		add	r3, r3, r2
+ 255 010a CAB2     		uxtb	r2, r1
+ 256 010c 1A70     		strb	r2, [r3]
+ 257 010e 01E0     		b	.L9
+ 258              	.L11:
+  51:.././simpleserial/simpleserial.c **** 		else
+  52:.././simpleserial/simpleserial.c **** 			return 1;
+ 259              		.loc 1 52 11
+ 260 0110 0123     		movs	r3, #1
+ 261 0112 08E0     		b	.L7
+ 262              	.L9:
+ 263              	.LBE3:
+  31:.././simpleserial/simpleserial.c **** 	{
+ 264              		.loc 1 31 27 discriminator 2
+ 265 0114 7B69     		ldr	r3, [r7, #20]
+ 266 0116 0133     		adds	r3, r3, #1
+ 267 0118 7B61     		str	r3, [r7, #20]
+ 268              	.L2:
+  31:.././simpleserial/simpleserial.c **** 	{
+ 269              		.loc 1 31 2 discriminator 1
+ 270 011a 7A69     		ldr	r2, [r7, #20]
+ 271 011c FB68     		ldr	r3, [r7, #12]
+ 272 011e 9A42     		cmp	r2, r3
+ 273 0120 FFF677AF 		blt	.L12
+ 274              	.LBE2:
+  53:.././simpleserial/simpleserial.c **** 	}
+  54:.././simpleserial/simpleserial.c **** 
+  55:.././simpleserial/simpleserial.c **** 	return 0;
+ 275              		.loc 1 55 9
+ 276 0124 0023     		movs	r3, #0
+ 277              	.L7:
+  56:.././simpleserial/simpleserial.c **** }
+ 278              		.loc 1 56 1
+ 279 0126 1846     		mov	r0, r3
+ 280 0128 1C37     		adds	r7, r7, #28
+ 281              	.LCFI3:
+ 282              		.cfi_def_cfa_offset 4
+ 283 012a BD46     		mov	sp, r7
+ 284              	.LCFI4:
+ 285              		.cfi_def_cfa_register 13
+ 286              		@ sp needed
+ 287 012c 5DF8047B 		ldr	r7, [sp], #4
+ 288              	.LCFI5:
+ 289              		.cfi_restore 7
+ 290              		.cfi_def_cfa_offset 0
+ 291 0130 7047     		bx	lr
+ 292              		.cfi_endproc
+ 293              	.LFE0:
+ 295              		.section	.text.check_version,"ax",%progbits
+ 296              		.align	1
+ 297              		.global	check_version
+ 298              		.syntax unified
+ 299              		.thumb
+ 300              		.thumb_func
+ 301              		.fpu fpv4-sp-d16
+ 303              	check_version:
+ 304              	.LFB1:
+  57:.././simpleserial/simpleserial.c **** 
+  58:.././simpleserial/simpleserial.c **** // Callback function for "v" command.
+  59:.././simpleserial/simpleserial.c **** // This can exist in v1.0 as long as we don't actually send back an ack ("z")
+  60:.././simpleserial/simpleserial.c **** uint8_t check_version(uint8_t* v)
+  61:.././simpleserial/simpleserial.c **** {
+ 305              		.loc 1 61 1
+ 306              		.cfi_startproc
+ 307              		@ args = 0, pretend = 0, frame = 8
+ 308              		@ frame_needed = 1, uses_anonymous_args = 0
+ 309              		@ link register save eliminated.
+ 310 0000 80B4     		push	{r7}
+ 311              	.LCFI6:
+ 312              		.cfi_def_cfa_offset 4
+ 313              		.cfi_offset 7, -4
+ 314 0002 83B0     		sub	sp, sp, #12
+ 315              	.LCFI7:
+ 316              		.cfi_def_cfa_offset 16
+ 317 0004 00AF     		add	r7, sp, #0
+ 318              	.LCFI8:
+ 319              		.cfi_def_cfa_register 7
+ 320 0006 7860     		str	r0, [r7, #4]
+  62:.././simpleserial/simpleserial.c **** 	return 0x00;
+ 321              		.loc 1 62 9
+ 322 0008 0023     		movs	r3, #0
+  63:.././simpleserial/simpleserial.c **** }
+ 323              		.loc 1 63 1
+ 324 000a 1846     		mov	r0, r3
+ 325 000c 0C37     		adds	r7, r7, #12
+ 326              	.LCFI9:
+ 327              		.cfi_def_cfa_offset 4
+ 328 000e BD46     		mov	sp, r7
+ 329              	.LCFI10:
+ 330              		.cfi_def_cfa_register 13
+ 331              		@ sp needed
+ 332 0010 5DF8047B 		ldr	r7, [sp], #4
+ 333              	.LCFI11:
+ 334              		.cfi_restore 7
+ 335              		.cfi_def_cfa_offset 0
+ 336 0014 7047     		bx	lr
+ 337              		.cfi_endproc
+ 338              	.LFE1:
+ 340              		.section	.text.simpleserial_init,"ax",%progbits
+ 341              		.align	1
+ 342              		.global	simpleserial_init
+ 343              		.syntax unified
+ 344              		.thumb
+ 345              		.thumb_func
+ 346              		.fpu fpv4-sp-d16
+ 348              	simpleserial_init:
+ 349              	.LFB2:
+  64:.././simpleserial/simpleserial.c **** 
+  65:.././simpleserial/simpleserial.c **** // Set up the SimpleSerial module by preparing internal commands
+  66:.././simpleserial/simpleserial.c **** // This just adds the "v" command for now...
+  67:.././simpleserial/simpleserial.c **** void simpleserial_init()
+  68:.././simpleserial/simpleserial.c **** {
+ 350              		.loc 1 68 1
+ 351              		.cfi_startproc
+ 352              		@ args = 0, pretend = 0, frame = 0
+ 353              		@ frame_needed = 1, uses_anonymous_args = 0
+ 354 0000 80B5     		push	{r7, lr}
+ 355              	.LCFI12:
+ 356              		.cfi_def_cfa_offset 8
+ 357              		.cfi_offset 7, -8
+ 358              		.cfi_offset 14, -4
+ 359 0002 00AF     		add	r7, sp, #0
+ 360              	.LCFI13:
+ 361              		.cfi_def_cfa_register 7
+  69:.././simpleserial/simpleserial.c **** 	simpleserial_addcmd('v', 0, check_version);
+ 362              		.loc 1 69 2
+ 363 0004 034A     		ldr	r2, .L16
+ 364 0006 0021     		movs	r1, #0
+ 365 0008 7620     		movs	r0, #118
+ 366 000a FFF7FEFF 		bl	simpleserial_addcmd
+  70:.././simpleserial/simpleserial.c **** }
+ 367              		.loc 1 70 1
+ 368 000e 00BF     		nop
+ 369 0010 80BD     		pop	{r7, pc}
+ 370              	.L17:
+ 371 0012 00BF     		.align	2
+ 372              	.L16:
+ 373 0014 00000000 		.word	check_version
+ 374              		.cfi_endproc
+ 375              	.LFE2:
+ 377              		.section	.text.simpleserial_addcmd,"ax",%progbits
+ 378              		.align	1
+ 379              		.global	simpleserial_addcmd
+ 380              		.syntax unified
+ 381              		.thumb
+ 382              		.thumb_func
+ 383              		.fpu fpv4-sp-d16
+ 385              	simpleserial_addcmd:
+ 386              	.LFB3:
+  71:.././simpleserial/simpleserial.c **** 
+  72:.././simpleserial/simpleserial.c **** int simpleserial_addcmd(char c, unsigned int len, uint8_t (*fp)(uint8_t*))
+  73:.././simpleserial/simpleserial.c **** {
+ 387              		.loc 1 73 1
+ 388              		.cfi_startproc
+ 389              		@ args = 0, pretend = 0, frame = 16
+ 390              		@ frame_needed = 1, uses_anonymous_args = 0
+ 391              		@ link register save eliminated.
+ 392 0000 80B4     		push	{r7}
+ 393              	.LCFI14:
+ 394              		.cfi_def_cfa_offset 4
+ 395              		.cfi_offset 7, -4
+ 396 0002 85B0     		sub	sp, sp, #20
+ 397              	.LCFI15:
+ 398              		.cfi_def_cfa_offset 24
+ 399 0004 00AF     		add	r7, sp, #0
+ 400              	.LCFI16:
+ 401              		.cfi_def_cfa_register 7
+ 402 0006 0346     		mov	r3, r0
+ 403 0008 B960     		str	r1, [r7, #8]
+ 404 000a 7A60     		str	r2, [r7, #4]
+ 405 000c FB73     		strb	r3, [r7, #15]
+  74:.././simpleserial/simpleserial.c **** 	if(num_commands >= MAX_SS_CMDS)
+ 406              		.loc 1 74 18
+ 407 000e 1B4B     		ldr	r3, .L22
+ 408 0010 1B68     		ldr	r3, [r3]
+ 409              		.loc 1 74 4
+ 410 0012 092B     		cmp	r3, #9
+ 411 0014 01DD     		ble	.L19
+  75:.././simpleserial/simpleserial.c **** 		return 1;
+ 412              		.loc 1 75 10
+ 413 0016 0123     		movs	r3, #1
+ 414 0018 2AE0     		b	.L20
+ 415              	.L19:
+  76:.././simpleserial/simpleserial.c **** 
+  77:.././simpleserial/simpleserial.c **** 	if(len >= MAX_SS_LEN)
+ 416              		.loc 1 77 4
+ 417 001a BB68     		ldr	r3, [r7, #8]
+ 418 001c 3F2B     		cmp	r3, #63
+ 419 001e 01D9     		bls	.L21
+  78:.././simpleserial/simpleserial.c **** 		return 1;
+ 420              		.loc 1 78 10
+ 421 0020 0123     		movs	r3, #1
+ 422 0022 25E0     		b	.L20
+ 423              	.L21:
+  79:.././simpleserial/simpleserial.c **** 
+  80:.././simpleserial/simpleserial.c **** 	commands[num_commands].c   = c;
+ 424              		.loc 1 80 24
+ 425 0024 154B     		ldr	r3, .L22
+ 426 0026 1A68     		ldr	r2, [r3]
+ 427              		.loc 1 80 29
+ 428 0028 1549     		ldr	r1, .L22+4
+ 429 002a 1346     		mov	r3, r2
+ 430 002c 5B00     		lsls	r3, r3, #1
+ 431 002e 1344     		add	r3, r3, r2
+ 432 0030 9B00     		lsls	r3, r3, #2
+ 433 0032 0B44     		add	r3, r3, r1
+ 434 0034 FA7B     		ldrb	r2, [r7, #15]
+ 435 0036 1A70     		strb	r2, [r3]
+  81:.././simpleserial/simpleserial.c **** 	commands[num_commands].len = len;
+ 436              		.loc 1 81 24
+ 437 0038 104B     		ldr	r3, .L22
+ 438 003a 1A68     		ldr	r2, [r3]
+ 439              		.loc 1 81 29
+ 440 003c 1049     		ldr	r1, .L22+4
+ 441 003e 1346     		mov	r3, r2
+ 442 0040 5B00     		lsls	r3, r3, #1
+ 443 0042 1344     		add	r3, r3, r2
+ 444 0044 9B00     		lsls	r3, r3, #2
+ 445 0046 0B44     		add	r3, r3, r1
+ 446 0048 0433     		adds	r3, r3, #4
+ 447 004a BA68     		ldr	r2, [r7, #8]
+ 448 004c 1A60     		str	r2, [r3]
+  82:.././simpleserial/simpleserial.c **** 	commands[num_commands].fp  = fp;
+ 449              		.loc 1 82 24
+ 450 004e 0B4B     		ldr	r3, .L22
+ 451 0050 1A68     		ldr	r2, [r3]
+ 452              		.loc 1 82 29
+ 453 0052 0B49     		ldr	r1, .L22+4
+ 454 0054 1346     		mov	r3, r2
+ 455 0056 5B00     		lsls	r3, r3, #1
+ 456 0058 1344     		add	r3, r3, r2
+ 457 005a 9B00     		lsls	r3, r3, #2
+ 458 005c 0B44     		add	r3, r3, r1
+ 459 005e 0833     		adds	r3, r3, #8
+ 460 0060 7A68     		ldr	r2, [r7, #4]
+ 461 0062 1A60     		str	r2, [r3]
+  83:.././simpleserial/simpleserial.c **** 	num_commands++;
+ 462              		.loc 1 83 14
+ 463 0064 054B     		ldr	r3, .L22
+ 464 0066 1B68     		ldr	r3, [r3]
+ 465 0068 0133     		adds	r3, r3, #1
+ 466 006a 044A     		ldr	r2, .L22
+ 467 006c 1360     		str	r3, [r2]
+  84:.././simpleserial/simpleserial.c **** 
+  85:.././simpleserial/simpleserial.c **** 	return 0;
+ 468              		.loc 1 85 9
+ 469 006e 0023     		movs	r3, #0
+ 470              	.L20:
+  86:.././simpleserial/simpleserial.c **** }
+ 471              		.loc 1 86 1
+ 472 0070 1846     		mov	r0, r3
+ 473 0072 1437     		adds	r7, r7, #20
+ 474              	.LCFI17:
+ 475              		.cfi_def_cfa_offset 4
+ 476 0074 BD46     		mov	sp, r7
+ 477              	.LCFI18:
+ 478              		.cfi_def_cfa_register 13
+ 479              		@ sp needed
+ 480 0076 5DF8047B 		ldr	r7, [sp], #4
+ 481              	.LCFI19:
+ 482              		.cfi_restore 7
+ 483              		.cfi_def_cfa_offset 0
+ 484 007a 7047     		bx	lr
+ 485              	.L23:
+ 486              		.align	2
+ 487              	.L22:
+ 488 007c 78000000 		.word	num_commands
+ 489 0080 00000000 		.word	commands
+ 490              		.cfi_endproc
+ 491              	.LFE3:
+ 493              		.section	.text.simpleserial_get,"ax",%progbits
+ 494              		.align	1
+ 495              		.global	simpleserial_get
+ 496              		.syntax unified
+ 497              		.thumb
+ 498              		.thumb_func
+ 499              		.fpu fpv4-sp-d16
+ 501              	simpleserial_get:
+ 502              	.LFB4:
+  87:.././simpleserial/simpleserial.c **** 
+  88:.././simpleserial/simpleserial.c **** void simpleserial_get(void)
+  89:.././simpleserial/simpleserial.c **** {
+ 503              		.loc 1 89 1
+ 504              		.cfi_startproc
+ 505              		@ args = 0, pretend = 0, frame = 208
+ 506              		@ frame_needed = 1, uses_anonymous_args = 0
+ 507 0000 80B5     		push	{r7, lr}
+ 508              	.LCFI20:
+ 509              		.cfi_def_cfa_offset 8
+ 510              		.cfi_offset 7, -8
+ 511              		.cfi_offset 14, -4
+ 512 0002 B4B0     		sub	sp, sp, #208
+ 513              	.LCFI21:
+ 514              		.cfi_def_cfa_offset 216
+ 515 0004 00AF     		add	r7, sp, #0
+ 516              	.LCFI22:
+ 517              		.cfi_def_cfa_register 7
+  90:.././simpleserial/simpleserial.c **** 	char ascii_buf[2*MAX_SS_LEN];
+  91:.././simpleserial/simpleserial.c **** 	uint8_t data_buf[MAX_SS_LEN];
+  92:.././simpleserial/simpleserial.c **** 	char c;
+  93:.././simpleserial/simpleserial.c **** 
+  94:.././simpleserial/simpleserial.c **** 	// Find which command we're receiving
+  95:.././simpleserial/simpleserial.c **** 	c = getch();
+ 518              		.loc 1 95 6
+ 519 0006 FFF7FEFF 		bl	getch
+ 520 000a 0346     		mov	r3, r0
+ 521 000c 87F8C730 		strb	r3, [r7, #199]
+  96:.././simpleserial/simpleserial.c **** 
+  97:.././simpleserial/simpleserial.c **** 	int cmd;
+  98:.././simpleserial/simpleserial.c **** 	for(cmd = 0; cmd < num_commands; cmd++)
+ 522              		.loc 1 98 10
+ 523 0010 0023     		movs	r3, #0
+ 524 0012 C7F8CC30 		str	r3, [r7, #204]
+ 525              		.loc 1 98 2
+ 526 0016 11E0     		b	.L25
+ 527              	.L28:
+  99:.././simpleserial/simpleserial.c **** 	{
+ 100:.././simpleserial/simpleserial.c **** 		if(commands[cmd].c == c)
+ 528              		.loc 1 100 19
+ 529 0018 4649     		ldr	r1, .L43
+ 530 001a D7F8CC20 		ldr	r2, [r7, #204]
+ 531 001e 1346     		mov	r3, r2
+ 532 0020 5B00     		lsls	r3, r3, #1
+ 533 0022 1344     		add	r3, r3, r2
+ 534 0024 9B00     		lsls	r3, r3, #2
+ 535 0026 0B44     		add	r3, r3, r1
+ 536 0028 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 537              		.loc 1 100 5
+ 538 002a 97F8C720 		ldrb	r2, [r7, #199]	@ zero_extendqisi2
+ 539 002e 9A42     		cmp	r2, r3
+ 540 0030 0BD0     		beq	.L38
+  98:.././simpleserial/simpleserial.c **** 	{
+ 541              		.loc 1 98 38 discriminator 2
+ 542 0032 D7F8CC30 		ldr	r3, [r7, #204]
+ 543 0036 0133     		adds	r3, r3, #1
+ 544 0038 C7F8CC30 		str	r3, [r7, #204]
+ 545              	.L25:
+  98:.././simpleserial/simpleserial.c **** 	{
+ 546              		.loc 1 98 19 discriminator 1
+ 547 003c 3E4B     		ldr	r3, .L43+4
+ 548 003e 1B68     		ldr	r3, [r3]
+  98:.././simpleserial/simpleserial.c **** 	{
+ 549              		.loc 1 98 2 discriminator 1
+ 550 0040 D7F8CC20 		ldr	r2, [r7, #204]
+ 551 0044 9A42     		cmp	r2, r3
+ 552 0046 E7DB     		blt	.L28
+ 553 0048 00E0     		b	.L27
+ 554              	.L38:
+ 101:.././simpleserial/simpleserial.c **** 			break;
+ 555              		.loc 1 101 4
+ 556 004a 00BF     		nop
+ 557              	.L27:
+ 102:.././simpleserial/simpleserial.c **** 	}
+ 103:.././simpleserial/simpleserial.c **** 
+ 104:.././simpleserial/simpleserial.c **** 	// If we didn't find a match, give up right away
+ 105:.././simpleserial/simpleserial.c **** 	if(cmd == num_commands)
+ 558              		.loc 1 105 9
+ 559 004c 3A4B     		ldr	r3, .L43+4
+ 560 004e 1B68     		ldr	r3, [r3]
+ 561              		.loc 1 105 4
+ 562 0050 D7F8CC20 		ldr	r2, [r7, #204]
+ 563 0054 9A42     		cmp	r2, r3
+ 564 0056 63D0     		beq	.L39
+ 565              	.LBB4:
+ 106:.././simpleserial/simpleserial.c **** 		return;
+ 107:.././simpleserial/simpleserial.c **** 
+ 108:.././simpleserial/simpleserial.c **** 	// Receive characters until we fill the ASCII buffer
+ 109:.././simpleserial/simpleserial.c **** 	for(int i = 0; i < 2*commands[cmd].len; i++)
+ 566              		.loc 1 109 10
+ 567 0058 0023     		movs	r3, #0
+ 568 005a C7F8C830 		str	r3, [r7, #200]
+ 569              		.loc 1 109 2
+ 570 005e 19E0     		b	.L31
+ 571              	.L34:
+ 110:.././simpleserial/simpleserial.c **** 	{
+ 111:.././simpleserial/simpleserial.c **** 		c = getch();
+ 572              		.loc 1 111 7
+ 573 0060 FFF7FEFF 		bl	getch
+ 574 0064 0346     		mov	r3, r0
+ 575 0066 87F8C730 		strb	r3, [r7, #199]
+ 112:.././simpleserial/simpleserial.c **** 
+ 113:.././simpleserial/simpleserial.c **** 		// Check for early \n
+ 114:.././simpleserial/simpleserial.c **** 		if(c == '\n' || c == '\r')
+ 576              		.loc 1 114 5
+ 577 006a 97F8C730 		ldrb	r3, [r7, #199]	@ zero_extendqisi2
+ 578 006e 0A2B     		cmp	r3, #10
+ 579 0070 58D0     		beq	.L40
+ 580              		.loc 1 114 16 discriminator 1
+ 581 0072 97F8C730 		ldrb	r3, [r7, #199]	@ zero_extendqisi2
+ 582 0076 0D2B     		cmp	r3, #13
+ 583 0078 54D0     		beq	.L40
+ 115:.././simpleserial/simpleserial.c **** 			return;
+ 116:.././simpleserial/simpleserial.c **** 
+ 117:.././simpleserial/simpleserial.c **** 		ascii_buf[i] = c;
+ 584              		.loc 1 117 16 discriminator 2
+ 585 007a 07F14402 		add	r2, r7, #68
+ 586 007e D7F8C830 		ldr	r3, [r7, #200]
+ 587 0082 1344     		add	r3, r3, r2
+ 588 0084 97F8C720 		ldrb	r2, [r7, #199]
+ 589 0088 1A70     		strb	r2, [r3]
+ 109:.././simpleserial/simpleserial.c **** 	{
+ 590              		.loc 1 109 43 discriminator 2
+ 591 008a D7F8C830 		ldr	r3, [r7, #200]
+ 592 008e 0133     		adds	r3, r3, #1
+ 593 0090 C7F8C830 		str	r3, [r7, #200]
+ 594              	.L31:
+ 109:.././simpleserial/simpleserial.c **** 	{
+ 595              		.loc 1 109 36 discriminator 1
+ 596 0094 2749     		ldr	r1, .L43
+ 597 0096 D7F8CC20 		ldr	r2, [r7, #204]
+ 598 009a 1346     		mov	r3, r2
+ 599 009c 5B00     		lsls	r3, r3, #1
+ 600 009e 1344     		add	r3, r3, r2
+ 601 00a0 9B00     		lsls	r3, r3, #2
+ 602 00a2 0B44     		add	r3, r3, r1
+ 603 00a4 0433     		adds	r3, r3, #4
+ 604 00a6 1B68     		ldr	r3, [r3]
+ 109:.././simpleserial/simpleserial.c **** 	{
+ 605              		.loc 1 109 22 discriminator 1
+ 606 00a8 5A00     		lsls	r2, r3, #1
+ 109:.././simpleserial/simpleserial.c **** 	{
+ 607              		.loc 1 109 19 discriminator 1
+ 608 00aa D7F8C830 		ldr	r3, [r7, #200]
+ 109:.././simpleserial/simpleserial.c **** 	{
+ 609              		.loc 1 109 2 discriminator 1
+ 610 00ae 9A42     		cmp	r2, r3
+ 611 00b0 D6D8     		bhi	.L34
+ 612              	.LBE4:
+ 118:.././simpleserial/simpleserial.c **** 	}
+ 119:.././simpleserial/simpleserial.c **** 
+ 120:.././simpleserial/simpleserial.c **** 	// Assert that last character is \n or \r
+ 121:.././simpleserial/simpleserial.c **** 	c = getch();
+ 613              		.loc 1 121 6
+ 614 00b2 FFF7FEFF 		bl	getch
+ 615 00b6 0346     		mov	r3, r0
+ 616 00b8 87F8C730 		strb	r3, [r7, #199]
+ 122:.././simpleserial/simpleserial.c **** 	if(c != '\n' && c != '\r')
+ 617              		.loc 1 122 4
+ 618 00bc 97F8C730 		ldrb	r3, [r7, #199]	@ zero_extendqisi2
+ 619 00c0 0A2B     		cmp	r3, #10
+ 620 00c2 03D0     		beq	.L35
+ 621              		.loc 1 122 15 discriminator 1
+ 622 00c4 97F8C730 		ldrb	r3, [r7, #199]	@ zero_extendqisi2
+ 623 00c8 0D2B     		cmp	r3, #13
+ 624 00ca 2DD1     		bne	.L41
+ 625              	.L35:
+ 123:.././simpleserial/simpleserial.c **** 		return;
+ 124:.././simpleserial/simpleserial.c **** 
+ 125:.././simpleserial/simpleserial.c **** 	// ASCII buffer is full: convert to bytes 
+ 126:.././simpleserial/simpleserial.c **** 	// Check for illegal characters here
+ 127:.././simpleserial/simpleserial.c **** 	if(hex_decode(commands[cmd].len, ascii_buf, data_buf))
+ 626              		.loc 1 127 29
+ 627 00cc 1949     		ldr	r1, .L43
+ 628 00ce D7F8CC20 		ldr	r2, [r7, #204]
+ 629 00d2 1346     		mov	r3, r2
+ 630 00d4 5B00     		lsls	r3, r3, #1
+ 631 00d6 1344     		add	r3, r3, r2
+ 632 00d8 9B00     		lsls	r3, r3, #2
+ 633 00da 0B44     		add	r3, r3, r1
+ 634 00dc 0433     		adds	r3, r3, #4
+ 635 00de 1B68     		ldr	r3, [r3]
+ 636              		.loc 1 127 5
+ 637 00e0 1846     		mov	r0, r3
+ 638 00e2 3A1D     		adds	r2, r7, #4
+ 639 00e4 07F14403 		add	r3, r7, #68
+ 640 00e8 1946     		mov	r1, r3
+ 641 00ea FFF7FEFF 		bl	hex_decode
+ 642 00ee 0346     		mov	r3, r0
+ 643              		.loc 1 127 4
+ 644 00f0 002B     		cmp	r3, #0
+ 645 00f2 1BD1     		bne	.L42
+ 128:.././simpleserial/simpleserial.c **** 		return;
+ 129:.././simpleserial/simpleserial.c **** 
+ 130:.././simpleserial/simpleserial.c **** 	// Callback
+ 131:.././simpleserial/simpleserial.c **** 	uint8_t ret[1];
+ 132:.././simpleserial/simpleserial.c **** 	ret[0] = commands[cmd].fp(data_buf);
+ 646              		.loc 1 132 24
+ 647 00f4 0F49     		ldr	r1, .L43
+ 648 00f6 D7F8CC20 		ldr	r2, [r7, #204]
+ 649 00fa 1346     		mov	r3, r2
+ 650 00fc 5B00     		lsls	r3, r3, #1
+ 651 00fe 1344     		add	r3, r3, r2
+ 652 0100 9B00     		lsls	r3, r3, #2
+ 653 0102 0B44     		add	r3, r3, r1
+ 654 0104 0833     		adds	r3, r3, #8
+ 655 0106 1B68     		ldr	r3, [r3]
+ 656              		.loc 1 132 11
+ 657 0108 3A1D     		adds	r2, r7, #4
+ 658 010a 1046     		mov	r0, r2
+ 659 010c 9847     		blx	r3
+ 660              	.LVL0:
+ 661 010e 0346     		mov	r3, r0
+ 662              		.loc 1 132 9
+ 663 0110 3B70     		strb	r3, [r7]
+ 133:.././simpleserial/simpleserial.c **** 	
+ 134:.././simpleserial/simpleserial.c **** 	// Acknowledge (if version is 1.1)
+ 135:.././simpleserial/simpleserial.c **** #if SS_VER == SS_VER_1_1
+ 136:.././simpleserial/simpleserial.c **** 	simpleserial_put('z', 1, ret);
+ 664              		.loc 1 136 2
+ 665 0112 3B46     		mov	r3, r7
+ 666 0114 1A46     		mov	r2, r3
+ 667 0116 0121     		movs	r1, #1
+ 668 0118 7A20     		movs	r0, #122
+ 669 011a FFF7FEFF 		bl	simpleserial_put
+ 670 011e 06E0     		b	.L24
+ 671              	.L39:
+ 106:.././simpleserial/simpleserial.c **** 
+ 672              		.loc 1 106 3
+ 673 0120 00BF     		nop
+ 674 0122 04E0     		b	.L24
+ 675              	.L40:
+ 676              	.LBB5:
+ 115:.././simpleserial/simpleserial.c **** 
+ 677              		.loc 1 115 4
+ 678 0124 00BF     		nop
+ 679 0126 02E0     		b	.L24
+ 680              	.L41:
+ 681              	.LBE5:
+ 123:.././simpleserial/simpleserial.c **** 
+ 682              		.loc 1 123 3
+ 683 0128 00BF     		nop
+ 684 012a 00E0     		b	.L24
+ 685              	.L42:
+ 128:.././simpleserial/simpleserial.c **** 
+ 686              		.loc 1 128 3
+ 687 012c 00BF     		nop
+ 688              	.L24:
+ 137:.././simpleserial/simpleserial.c **** #endif
+ 138:.././simpleserial/simpleserial.c **** }
+ 689              		.loc 1 138 1
+ 690 012e D037     		adds	r7, r7, #208
+ 691              	.LCFI23:
+ 692              		.cfi_def_cfa_offset 8
+ 693 0130 BD46     		mov	sp, r7
+ 694              	.LCFI24:
+ 695              		.cfi_def_cfa_register 13
+ 696              		@ sp needed
+ 697 0132 80BD     		pop	{r7, pc}
+ 698              	.L44:
+ 699              		.align	2
+ 700              	.L43:
+ 701 0134 00000000 		.word	commands
+ 702 0138 78000000 		.word	num_commands
+ 703              		.cfi_endproc
+ 704              	.LFE4:
+ 706              		.section	.text.simpleserial_put,"ax",%progbits
+ 707              		.align	1
+ 708              		.global	simpleserial_put
+ 709              		.syntax unified
+ 710              		.thumb
+ 711              		.thumb_func
+ 712              		.fpu fpv4-sp-d16
+ 714              	simpleserial_put:
+ 715              	.LFB5:
+ 139:.././simpleserial/simpleserial.c **** 
+ 140:.././simpleserial/simpleserial.c **** void simpleserial_put(char c, int size, uint8_t* output)
+ 141:.././simpleserial/simpleserial.c **** {
+ 716              		.loc 1 141 1
+ 717              		.cfi_startproc
+ 718              		@ args = 0, pretend = 0, frame = 24
+ 719              		@ frame_needed = 1, uses_anonymous_args = 0
+ 720 0000 80B5     		push	{r7, lr}
+ 721              	.LCFI25:
+ 722              		.cfi_def_cfa_offset 8
+ 723              		.cfi_offset 7, -8
+ 724              		.cfi_offset 14, -4
+ 725 0002 86B0     		sub	sp, sp, #24
+ 726              	.LCFI26:
+ 727              		.cfi_def_cfa_offset 32
+ 728 0004 00AF     		add	r7, sp, #0
+ 729              	.LCFI27:
+ 730              		.cfi_def_cfa_register 7
+ 731 0006 0346     		mov	r3, r0
+ 732 0008 B960     		str	r1, [r7, #8]
+ 733 000a 7A60     		str	r2, [r7, #4]
+ 734 000c FB73     		strb	r3, [r7, #15]
+ 142:.././simpleserial/simpleserial.c **** 	// Write first character
+ 143:.././simpleserial/simpleserial.c **** 	putch(c);
+ 735              		.loc 1 143 2
+ 736 000e FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 737 0010 1846     		mov	r0, r3
+ 738 0012 FFF7FEFF 		bl	putch
+ 739              	.LBB6:
+ 144:.././simpleserial/simpleserial.c **** 
+ 145:.././simpleserial/simpleserial.c **** 	// Write each byte as two nibbles
+ 146:.././simpleserial/simpleserial.c **** 	for(int i = 0; i < size; i++)
+ 740              		.loc 1 146 10
+ 741 0016 0023     		movs	r3, #0
+ 742 0018 7B61     		str	r3, [r7, #20]
+ 743              		.loc 1 146 2
+ 744 001a 19E0     		b	.L46
+ 745              	.L47:
+ 147:.././simpleserial/simpleserial.c **** 	{
+ 148:.././simpleserial/simpleserial.c **** 		putch(hex_lookup[output[i] >> 4 ]);
+ 746              		.loc 1 148 26 discriminator 3
+ 747 001c 7B69     		ldr	r3, [r7, #20]
+ 748 001e 7A68     		ldr	r2, [r7, #4]
+ 749 0020 1344     		add	r3, r3, r2
+ 750 0022 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 751              		.loc 1 148 30 discriminator 3
+ 752 0024 1B09     		lsrs	r3, r3, #4
+ 753 0026 DBB2     		uxtb	r3, r3
+ 754 0028 1A46     		mov	r2, r3
+ 755              		.loc 1 148 3 discriminator 3
+ 756 002a 0F4B     		ldr	r3, .L48
+ 757 002c 9B5C     		ldrb	r3, [r3, r2]	@ zero_extendqisi2
+ 758 002e 1846     		mov	r0, r3
+ 759 0030 FFF7FEFF 		bl	putch
+ 149:.././simpleserial/simpleserial.c **** 		putch(hex_lookup[output[i] & 0xF]);
+ 760              		.loc 1 149 26 discriminator 3
+ 761 0034 7B69     		ldr	r3, [r7, #20]
+ 762 0036 7A68     		ldr	r2, [r7, #4]
+ 763 0038 1344     		add	r3, r3, r2
+ 764 003a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 765              		.loc 1 149 30 discriminator 3
+ 766 003c 03F00F03 		and	r3, r3, #15
+ 767              		.loc 1 149 3 discriminator 3
+ 768 0040 094A     		ldr	r2, .L48
+ 769 0042 D35C     		ldrb	r3, [r2, r3]	@ zero_extendqisi2
+ 770 0044 1846     		mov	r0, r3
+ 771 0046 FFF7FEFF 		bl	putch
+ 146:.././simpleserial/simpleserial.c **** 	{
+ 772              		.loc 1 146 28 discriminator 3
+ 773 004a 7B69     		ldr	r3, [r7, #20]
+ 774 004c 0133     		adds	r3, r3, #1
+ 775 004e 7B61     		str	r3, [r7, #20]
+ 776              	.L46:
+ 146:.././simpleserial/simpleserial.c **** 	{
+ 777              		.loc 1 146 2 discriminator 1
+ 778 0050 7A69     		ldr	r2, [r7, #20]
+ 779 0052 BB68     		ldr	r3, [r7, #8]
+ 780 0054 9A42     		cmp	r2, r3
+ 781 0056 E1DB     		blt	.L47
+ 782              	.LBE6:
+ 150:.././simpleserial/simpleserial.c **** 	}
+ 151:.././simpleserial/simpleserial.c **** 
+ 152:.././simpleserial/simpleserial.c **** 	// Write trailing '\n'
+ 153:.././simpleserial/simpleserial.c **** 	putch('\n');
+ 783              		.loc 1 153 2
+ 784 0058 0A20     		movs	r0, #10
+ 785 005a FFF7FEFF 		bl	putch
+ 154:.././simpleserial/simpleserial.c **** }
+ 786              		.loc 1 154 1
+ 787 005e 00BF     		nop
+ 788 0060 1837     		adds	r7, r7, #24
+ 789              	.LCFI28:
+ 790              		.cfi_def_cfa_offset 8
+ 791 0062 BD46     		mov	sp, r7
+ 792              	.LCFI29:
+ 793              		.cfi_def_cfa_register 13
+ 794              		@ sp needed
+ 795 0064 80BD     		pop	{r7, pc}
+ 796              	.L49:
+ 797 0066 00BF     		.align	2
+ 798              	.L48:
+ 799 0068 00000000 		.word	hex_lookup
+ 800              		.cfi_endproc
+ 801              	.LFE5:
+ 803              		.text
+ 804              	.Letext0:
+ 805              		.file 2 "c:\\users\\char8\\documents\\gnu-mcu-eclipse-arm-none-eabi-gcc-8.2.1-1.7-20190524-0603-wi
+ 806              		.file 3 "c:\\users\\char8\\documents\\gnu-mcu-eclipse-arm-none-eabi-gcc-8.2.1-1.7-20190524-0603-wi
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 simpleserial.c
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:18     .bss:0000000000000000 $d
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:19     .bss:0000000000000000 commands
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:23     .bss:0000000000000078 num_commands
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:27     .data:0000000000000000 $d
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:30     .data:0000000000000000 hex_lookup
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:48     .text.hex_decode:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:56     .text.hex_decode:0000000000000000 hex_decode
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:296    .text.check_version:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:303    .text.check_version:0000000000000000 check_version
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:341    .text.simpleserial_init:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:348    .text.simpleserial_init:0000000000000000 simpleserial_init
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:385    .text.simpleserial_addcmd:0000000000000000 simpleserial_addcmd
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:373    .text.simpleserial_init:0000000000000014 $d
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:378    .text.simpleserial_addcmd:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:488    .text.simpleserial_addcmd:000000000000007c $d
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:494    .text.simpleserial_get:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:501    .text.simpleserial_get:0000000000000000 simpleserial_get
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:714    .text.simpleserial_put:0000000000000000 simpleserial_put
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:701    .text.simpleserial_get:0000000000000134 $d
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:707    .text.simpleserial_put:0000000000000000 $t
+C:\Users\char8\AppData\Local\Temp\cceqnFFR.s:799    .text.simpleserial_put:0000000000000068 $d
+                           .group:0000000000000000 wm4.0.4f4e2297610e043bdda5b1ed482d7fb1
+                           .group:0000000000000000 wm4._newlib_version.h.4.875b979a44719054cd750d0952ad3fd6
+                           .group:0000000000000000 wm4.features.h.33.5bd1eea2d80518b50f7af0b5ce6750e0
+                           .group:0000000000000000 wm4._default_types.h.15.247e5cd201eca3442cbf5404108c4935
+                           .group:0000000000000000 wm4._intsup.h.10.cce27fed8484c08a33f522034c30d2b5
+                           .group:0000000000000000 wm4._stdint.h.10.c24fa3af3bc1706662bb5593a907e841
+                           .group:0000000000000000 wm4.stdint.h.23.d53047a68f4a85177f80b422d52785ed
+                           .group:0000000000000000 wm4.hal.h.20.434d30cf9ff4efcf6c4d61bfe409a912
+                           .group:0000000000000000 wm4.stm32f3_hal.h.2.706db95bfd1d9d327d0129326e884dd7
+                           .group:0000000000000000 wm4.hal.h.144.a6ad02c83803dda3733c9d6b559976d1
+
+UNDEFINED SYMBOLS
+getch
+putch
