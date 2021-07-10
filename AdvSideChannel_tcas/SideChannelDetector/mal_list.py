@@ -99,3 +99,81 @@ data_logging = [
 
 data_logging_locations = len(data_logging) * [locations]
 
+information_disclosure = [
+'''@chunk1
+	sub sp, #0x20
+	add r9, sp, #8
+	str r12, [r9, #0xc]
+	str r1, [r9, #8]
+	movs r10, #0x1388
+	str r10, [r9]
+	movs r10, #0x01
+	strh r10, [r9, #6]
+	movs r10, #0
+	str r10, [r9, #0x14]''',
+'''@chunk2
+	ldr r10, [r9, #0xc]
+	movs r11, #1
+	strb r11, [r10, #0x68]
+	ldr r10, [r9, #0xc]
+	movs r11, #0
+	str r11, [r10, #0x6c]
+	ldr r10, [r9, #0xc]
+	movs r11, #0x21
+	strb r11, [r10, #0x69]''',
+'''@chunk3
+	ldr r10, [pc, #0x10]
+	ldr r10, [r10]
+	adds r11, r10, #1
+	ldr r1, [pc, #0xc]
+	str r11, [r1]
+	mov r12, r10''',
+'''@chunk4
+	str r12, [r9, #0x14]
+	ldr r10, [r9, #0xc]
+	ldrh r11, [r9, #6]
+	strh r11, [r10, #0x50]
+	ldr r10, [r9, #0xc]
+	ldrh r11, [r9, #6]
+	strhr11, [r10, #0x52]''',
+'''@chunk5
+	ldr r10, [r9, #0xc]
+	ldrh r10, [r10, #0x52]
+	uxth r10, r10
+	subs r10, #1
+	uxth r11, r10''',
+'''@chunk6
+	ldr r10, [r9, #8]
+	str r10, [r9, #0x10]
+	ldr r10, [r9, #0x10]
+	ldrh r11, [r10]
+	ldr r10, [r9, #0xc]
+	ldr r10, [r10]
+	ubfx r11, r11, #0, #9
+	uxth r11, r11
+	strh r11, [r10, #0x28]
+	ldr r10, [r9, #8]
+	adds r10, #2
+	str r10, [r9, #8]''',
+'''@chunk7
+	ldr r10, [r9, #8]
+	adds r11, r10, #1
+	str r11, [r9, #8]
+	ldrb r11, [r10]
+	ldr r10, [r9, #0xc]
+	ldr r10, [r10]
+	uxth r11, r11
+	strh r11, [r10, #0x28]''',
+'''@chunk8
+	ldr r10, [r9, #0xc]
+	movs r11, #0x20
+	strb r11, [r10, #0x69]
+	ldr r10, [r9, #0xc]
+	movs r11, #0
+	strb r11, [r10, #0x68]
+	movs r10, #0''',
+'''@chunk9
+	movs r10, #3''',
+]
+
+information_disclosure_locations = len(information_disclosure) * [locations]

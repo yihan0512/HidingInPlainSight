@@ -5,10 +5,7 @@
 - create a conda virtual environment: `conda create --prefix ./environment python=3.8`
 - install pytorch: follow instructions on pytorch.org to install the pytorch version that fits your cuda version
 - install hmmlearn: `pip install hmmlearn`
-- install our customized chipwhisperer: `python -m pip install -e . --user`
-
-
-## configuration
+- install our customized chipwhisperer (in `chipwhisperer/`): `python -m pip install -e . --user`
 
 
 ## how to use
