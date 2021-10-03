@@ -1,4 +1,6 @@
-# This is the code for our Usenix security Major revision submission
+# This is the code for our Usenix security 2022 paper "Hiding in Plain Sight? On the Efficacy of Power Side Channel-Based Control Flow Monitoring"
+
+## Our paper can be found here.
 
 ## installation
 - install anaconda3
